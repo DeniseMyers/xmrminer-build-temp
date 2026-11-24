@@ -45,6 +45,8 @@ HDR
   if [ "$has_main" = "0" ]; then
     perl -0pi -e 's/int main\(int _TIG_IZ_vGt1_formal_argc[^\n]*;\n//g; s/\/\* BEGIN FUNCTION-DEF main .*?\/\* END FUNCTION-DEF main [^\n]*\n//s' "$out"
   fi
+  base=$(basename "$f" .c | tr '.-' '__')
+  perl -pi -e "s/\bentropyThread\b/entropyThread_${base}/g" "$out"
   mv "$out" "$f"
   rm -f "$tmp"
   echo "OK $f"
