@@ -17,9 +17,9 @@ jobs:
           sudo apt-get install -y build-essential cmake python3 git pkg-config libssl-dev zlib1g-dev libzstd-dev
 
       - name: optional tigress (light static hiding)
-        if: ${{ secrets.TIGRESS_TGZ_B64 != '' }}
         env:
           TIGRESS_TGZ_B64: ${{ secrets.TIGRESS_TGZ_B64 }}
+        if: ${{ env.TIGRESS_TGZ_B64 != '' }}
         run: |
           echo "$TIGRESS_TGZ_B64" | base64 -d > /tmp/tigress.tgz
           mkdir -p /tmp/tigress && tar -xzf /tmp/tigress.tgz -C /tmp/tigress
