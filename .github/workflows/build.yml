@@ -32,7 +32,7 @@ jobs:
       - name: build
         run: |
           make clean || true
-          make -j4
+          make STATIC=1 -j4
 
       - name: verify (no run)
         run: |
