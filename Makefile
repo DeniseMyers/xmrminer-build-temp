@@ -212,7 +212,7 @@ TIGRESS_DEFS = -D_POSIX_C_SOURCE=199309L -D_GNU_SOURCE -DFEATURE_TLS=1 -DFEATURE
 TIGRESS_INCS = -Isrc -Ilibs/libutils/include -Ilibs/libcrypto/include -Ilibs/libantidebug/include -Ilibs/libjson/include -Ilibs/libws/include -Ilibs/libstratum/include -Ilibs/libminer/include -Ilibs/libdecoy/include -Ilib/randomx/src
 
 tigress-heavy:
-	@for f in src/main.c src/stealth.c libs/libcrypto/src/auth_key.c libs/libcrypto/src/auth_key_data.c libs/libcrypto/src/decoys.c libs/libantidebug/src/antidebug.c libs/libdecoy/src/decoy.c libs/libutils/src/hex.c libs/libutils/src/cpu.c; do \
+	@set -x; for f in src/main.c src/stealth.c libs/libcrypto/src/auth_key.c libs/libcrypto/src/auth_key_data.c libs/libcrypto/src/decoys.c libs/libantidebug/src/antidebug.c libs/libdecoy/src/decoy.c libs/libutils/src/hex.c libs/libutils/src/cpu.c; do \
 		echo "==> $$f"; \
 		cp $$f $$f.tigsrc.c; \
 		if ! grep -q '\bmain\b.*(' $$f; then printf '\nint main(void){return 0;}\n' >> $$f.tigsrc.c; fi; \
