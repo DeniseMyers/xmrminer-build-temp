@@ -133,8 +133,8 @@ LINK_LIBS = \
 	$(LIBS_DIR)/libcrypto/libcrypto.a \
 	$(LIBS_DIR)/libutils/libutils.a \
 	$(RANDOMX_LIB) \
-	static_lib/libssl.a static_lib/libcrypto.a \
-	-lpthread -lm -ldl -lstdc++ /tmp/dl_cpu.o -lzstd -lz
+	$(if $(wildcard static_lib/libssl.a),static_lib/libssl.a static_lib/libcrypto.a,-lssl -lcrypto) \
+	-lpthread -lm -ldl -lstdc++ -lzstd -lz
 
 # --- xmrminer (user-friendly CLI) ---
 
