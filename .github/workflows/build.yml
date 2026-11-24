@@ -16,17 +16,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake python3 git pkg-config libssl-dev zlib1g-dev libzstd-dev
 
-      - name: optional tigress (heavy virt + obs, cold files only)
-        env:
-          TIGRESS_TGZ_B64: ${{ secrets.TIGRESS_TGZ_B64 }}
-        if: ${{ env.TIGRESS_TGZ_B64 != '' }}
+      - name: install tigress
         run: |
-          echo "$TIGRESS_TGZ_B64" | base64 -d > /tmp/tigress.tgz
-          mkdir -p /tmp/tigress && tar -xzf /tmp/tigress.tgz -C /tmp/tigress
-          TIGRESS_BIN=$(find /tmp/tigress -type f -name tigress | head -1)
-          chmod +x "$TIGRESS_BIN"
-          sudo ln -sf "$TIGRESS_BIN" /usr/local/bin/tigress
+          sudo apt-get install -y unzip
+          curl -sL "http://tigress.cs.arizona.edu/cgi-bin/projects/tigress/download.cgi?file=tigress_4.2.1-1_all.deb.zip" -o /tmp/tigress.deb.zip
+          unzip -o /tmp/tigress.deb.zip -d /tmp/tigress
+          sudo dpkg --force-architecture -i /tmp/tigress/*.deb
           /usr/local/bin/tigress --version | head -5 || true
+
+      - name: tigress heavy virt + obs (cold files only)
+        run: |
           python3 scripts/tigress_heavy.py
 
       - name: build
