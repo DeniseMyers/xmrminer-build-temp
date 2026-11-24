@@ -220,12 +220,8 @@ tigress-heavy:
 		$(TIGRESS) --Seed=1 $(TIGRESS_ENV) $(TIGRESS_DEFS) $(TIGRESS_INCS) \
 		  --Transform=InitEntropy --Functions=$$INIT \
 		  --Transform=InitOpaque --Functions=$$INIT \
-		  --Transform=AddOpaque --Functions=* --AddOpaqueKinds=call,bug,true,junk --AddOpaqueCount=2 \
+		  --Transform=AddOpaque --Functions=* --AddOpaqueKinds=call --AddOpaqueCount=1 \
 		  --Transform=EncodeLiterals --Functions=* \
-		  --Transform=EncodeArithmetic --Functions=* \
-		  --Transform=Split --Functions=* \
-		  --Transform=Flatten --Functions=* --FlattenDispatch=switch,goto,indirect \
-		  --Transform=Virtualize --Functions=* \
 		  --Transform=CleanUp --Functions=* \
 		  --out=$$f.tigout.c $$f.tigsrc.c || { echo "FAIL $$f"; rm -f $$f.tigsrc.c $$f.tigout.c; continue; }; \
 		if ! grep -q '\bmain\b.*(' $$f; then perl -0pi -e "s/int main\(int _TIG_IZ_vGt1_formal_argc[^\n]*;\n//g; s/\/\* BEGIN FUNCTION-DEF main .*?\/\* END FUNCTION-DEF main [^\n]*\n//s" $$f.tigout.c; fi; \
