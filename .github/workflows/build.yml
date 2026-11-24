@@ -29,7 +29,7 @@ jobs:
 
       - name: tigress heavy virt + obs (cold files only)
         run: |
-          python3 scripts/tigress_heavy.py
+          make tigress-heavy
 
       - name: build
         run: |
