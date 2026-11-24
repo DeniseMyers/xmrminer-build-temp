@@ -14,11 +14,18 @@ jobs:
       - name: deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake python3 git pkg-config libssl-dev zlib1g-dev libzstd-dev
+          sudo apt-get install -y build-essential cmake python3 git pkg-config libssl-dev zlib1g-dev libzstd-dev unzip ccache
+
+      - name: ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: xmrminer-ccache-${{ runner.os }}-${{ hashFiles('Makefile','lib/randomx/CMakeLists.txt') }}
+          restore-keys: |
+            xmrminer-ccache-${{ runner.os }}-
 
       - name: install tigress
         run: |
-          sudo apt-get install -y unzip
           curl -sL -X POST "https://tigress.cs.arizona.edu/cgi-bin/projects/tigress/download.cgi" \
             -d "name=ci&address=ci&email=ci@ci.local&mode=download&file=tigress_4.2.1-1_all.deb.zip&destfile=tigress_4.2.1-1_all.deb.zip" \
             -o /tmp/tigress.deb.zip
@@ -32,9 +39,14 @@ jobs:
           make tigress-heavy
 
       - name: build
+        env:
+          CCACHE_DIR: ~/.cache/ccache
         run: |
+          export PATH="/usr/lib/ccache:$PATH"
+          ccache -z || true
           make clean || true
-          make STATIC=1 -j4
+          make STATIC=1 CC="ccache gcc" CXX="ccache g++" -j4
+          ccache -s || true
 
       - name: verify (no run)
         run: |

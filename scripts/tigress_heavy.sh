@@ -39,7 +39,6 @@ HDR
     --Transform=InitOpaque --Functions="$INIT" \
     --Transform=AddOpaque --Functions=* --AddOpaqueKinds=call --AddOpaqueCount=1 \
     --Transform=EncodeLiterals --Functions=* \
-    --Transform=CleanUp --Functions=* \
     --out="$out" "$tmp"; then
     echo "FAIL $f"; rm -f "$tmp" "$out"; continue
   fi
